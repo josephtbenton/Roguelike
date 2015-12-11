@@ -1,7 +1,7 @@
 package actors;
 
-import game.graphics.Camera;
-import javafx.scene.canvas.Canvas;
+import java.util.ArrayList;
+
 import javafx.scene.image.Image;
 import util.Dice;
 
@@ -9,24 +9,45 @@ import util.Dice;
  * Created by Joseph on 9/13/2015.
  */
 public class Monster extends Mob {
-    private int maxHealth;
-    private int currentHealth;
-    private int attack;
-    private int luck;
+    private int currentHealth, maxHealth, attack, luck, expValue;
     private String name;
+    private Hero attacker;
+    private MonsterType type;
+    private ArrayList<String> loot;
 
-    public Monster(int maxHealth, int attack, int luck, String name) {
-        this.maxHealth = maxHealth;
+    public Monster() {
+    	this.type = randomType();
+        this.maxHealth = type.getMaxHealth();
         this.currentHealth = maxHealth;
-        this.attack = attack;
-        this.luck = luck;
-        this.name = name;
-        this.sprite = new Image("assets/demon.png");
+        this.attack = type.getAttack();
+        this.luck = type.getLuck();
+        this.loot = type.getLoot();
+        this.expValue = type.getExpValue();
+        this.sprite = type.getAvatar();
         this.alive = true;
+    
+    }
+    
+    private MonsterType randomType(){
+    	Dice dice = new Dice(3);
+    	int result = dice.roll();
+    	switch(result){
+    	case 0:
+    		return MonsterType.DEMON;
+    	case 1:
+    		return MonsterType.TENTACLE;
+    	case 2:
+    		return MonsterType.OGRE;
+    	default:
+    		return MonsterType.DEMON;
+    		
+    	
+    	}
     }
 
     @Override
     boolean attack(Actor actor) {
+    	actor.setAttacker(this);
         Dice dice = new Dice(20);
         int roll = dice.roll() + luck;
         System.out.println(roll);
@@ -58,9 +79,15 @@ public class Monster extends Mob {
 
     @Override
     public void die() {
+    	this.attacker.addExperience(expValue);
+    	System.out.println("New exp: " + this.attacker.experience);
         this.sprite = new Image("assets/skull.png");
         alive = false;
     }
 
+	@Override
+	public void setAttacker(Actor actor) {
+		this.attacker = (Hero) actor;
+	}
 
 }
